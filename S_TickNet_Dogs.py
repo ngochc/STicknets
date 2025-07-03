@@ -5,7 +5,6 @@ import os
 import sys
 import time
 
-import pandas as pd
 import torch
 
 from models.STickNet import *
@@ -421,7 +420,7 @@ def main():
           f'acc_train={100.0 * train_accuracy:.2f}%, '
           f'loss_val={val_loss:.2f}, '
           f'acc_val={100.0 * val_accuracy:.2f}% '
-          f'(best: {100.0 * val_accuracy_max:.2f}% @ epoch {val_accuracy_argmax + 1})'
+          f'(best: {100.0 * val_accuracy_max:.2f}% @ epoch {(val_accuracy_argmax or 0) + 1})'
           '=================================================================================='
       )
       print(line)

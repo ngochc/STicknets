@@ -2,7 +2,6 @@
 
 import argparse
 import os
-import random
 import shutil
 import time
 import warnings
@@ -19,39 +18,40 @@ from util import get_device
 
 model_names = ['basic', 'small', 'large']
 parser = argparse.ArgumentParser(
-    description='PyTorch Spatial TickNet Training')
+    description='PyTorch Spatial TickNet Training for ImageNet Classification')
 
 parser.add_argument('-r', '--data', type=str,
-                    default='../../../datasets/ImageNet', help='path to dataset')
+                    default='../../../datasets/ImageNet',
+                    help='path to ImageNet dataset directory (default: ../../../datasets/ImageNet)')
 parser.add_argument('--arch', '-a', metavar='ARCH', default='basic',
                     choices=model_names,
-                    help='model architecture: ' +
+                    help='model architecture variant: ' +
                     ' | '.join(model_names) +
                     ' (default: basic)')
 parser.add_argument('-j', '--workers', default=16, type=int, metavar='N',
-                    help='number of data loading workers (default: 4)')
+                    help='number of data loading workers for parallel data processing (default: 16)')
 parser.add_argument('--epochs', default=150, type=int, metavar='N',
-                    help='number of total epochs to run')
+                    help='total number of training epochs to run (default: 150)')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
-                    help='manual epoch number (useful on restarts)')
+                    help='manual epoch number to start from, useful for resuming training (default: 0)')
 parser.add_argument('-b', '--batch-size', default=256, type=int,
-                    metavar='N', help='mini-batch size (default: 256)')
+                    metavar='N', help='mini-batch size for training and validation (default: 256)')
 parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
-                    metavar='LR', help='initial learning rate')
+                    metavar='LR', help='initial learning rate for SGD optimizer (default: 0.1)')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
-                    help='momentum')
+                    help='momentum factor for SGD optimizer (default: 0.9)')
 parser.add_argument('--weight-decay', '--wd', default=1e-4, type=float,
-                    metavar='W', help='weight decay (default: 1e-4)')
+                    metavar='W', help='weight decay (L2 penalty) for regularization (default: 1e-4)')
 parser.add_argument('--print-freq', '-p', default=100, type=int,
-                    metavar='N', help='print frequency (default: 10)')
+                    metavar='N', help='print frequency for training progress (default: 100)')
 parser.add_argument('--resume', default='', type=str, metavar='PATH',
-                    help='path to latest checkpoint (default: none)')
+                    help='path to latest checkpoint to resume training from (default: none)')
 parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
-                    help='evaluate model on validation set')
+                    help='evaluate model on validation set without training')
 parser.add_argument('--gpu', default=None, type=int,
-                    help='GPU id to use.')
+                    help='specific GPU device ID to use (default: auto-select)')
 parser.add_argument('--action', default='', type=str,
-                    help='other information.')
+                    help='additional identifier for experiment runs and output directories (default: empty)')
 
 
 best_prec1 = 0
@@ -84,7 +84,6 @@ def main():
                               momentum=args.momentum,
                               weight_decay=args.weight_decay)
 
-  # optionally resume from a checkpoint
   if args.evaluate:
     pathcheckpoint = "./checkpoints/ImageNet1k/small/model_best.pth.tar"
     if os.path.isfile(pathcheckpoint):
@@ -96,19 +95,6 @@ def main():
     else:
       print("=> no checkpoint found at '{}'".format(pathcheckpoint))
       return
-  if args.resume:
-    if os.path.isfile(args.resume):
-      print("=> loading checkpoint '{}'".format(args.resume))
-      checkpoint = torch.load(args.resume)
-      args.start_epoch = checkpoint['epoch']
-      best_prec1 = checkpoint['best_prec1']
-      model.load_state_dict(checkpoint['state_dict'])
-      optimizer.load_state_dict(checkpoint['optimizer'])
-      print("=> loaded checkpoint '{}' (epoch {})"
-            .format(args.resume, checkpoint['epoch']))
-      del checkpoint
-    else:
-      print("=> no checkpoint found at '{}'".format(args.resume))
 
   cudnn.benchmark = True
 
