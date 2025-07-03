@@ -1,4 +1,16 @@
-# STicknet
+# Spread-learned spatial features to improve tick-shape networks
+
+## Abstract
+
+The rapid growth of mobile devices and embedded systems requires a lightweight CNN-based network with high performance in reasonable complexity.
+Recently, TickNets were proposed to meet that requirement via connecting several tick-shape backbones. 
+However, their performance is still at a modest level due to the lack of spatial features exploited from a basic tick-shape backbone. 
+Addressing this issue, an efficient modification of the basic backbone is proposed to take into account spread-learned spatial features to improve the performance of tick-shape networks.
+This modification is simply done by adding a Full Residual Point-Depth-Point (FR-PDP) perceptron to the beginning of abasic backbone.
+Such a strategy will ensure two practical benefits for the tick-shape networks: i) Exploiting the identical FR-PDP-based features
+in a tick-shape backbone; and ii) Extracting more discriminative spatial
+features for the learning process. 
+Experimental results on various benchmark datasets have indicated that the spread-learned spatial features have significantly boosted the performance of TickNets, particularly, up to x% on CIFAR-100 or y% on Standford Dogs.
 
 ## Installation
 
