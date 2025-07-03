@@ -1,0 +1,81 @@
+# STickNet Notebooks
+
+This folder contains Jupyter notebooks demonstrating how to use the STickNet models.
+
+## Available Notebooks
+
+### STickNet_Example.ipynb
+A comprehensive example notebook that demonstrates:
+
+- **Model Creation**: How to create and configure STickNet models
+- **Data Loading**: Setting up data transforms and loaders for Stanford Dogs dataset
+- **Training Setup**: Configuring loss functions, optimizers, and schedulers
+- **Training Loop**: Complete training and validation process
+- **Visualization**: Plotting training curves and metrics
+- **Inference**: Making predictions on new images
+- **Model Persistence**: Saving and loading trained models
+
+## Getting Started
+
+1. **Install Jupyter** (if not already installed):
+   ```bash
+   pip install jupyter
+   ```
+
+2. **Start Jupyter Notebook**:
+   ```bash
+   jupyter notebook
+   ```
+
+3. **Open the notebook**:
+   - Navigate to the `notebooks/` folder
+   - Open `STickNet_Example.ipynb`
+
+## Prerequisites
+
+Before running the notebooks, make sure you have:
+
+1. **Installed all dependencies** from the main `requirements.txt`
+2. **Downloaded the Stanford Dogs dataset** (or update the data path in the notebook)
+3. **Set up your Python environment** as described in the main README
+
+## Dataset Setup
+
+The notebooks expect the Stanford Dogs dataset to be available. You can:
+
+1. **Download automatically** by setting `download=True` in the dataset creation
+2. **Use your own path** by updating the `data_root` variable in the notebook
+3. **Use a different dataset** by modifying the dataset class and transforms
+
+## Customization
+
+Feel free to modify the notebooks to:
+
+- Use different datasets (CIFAR-10, CIFAR-100, etc.)
+- Experiment with different model configurations
+- Try different hyperparameters
+- Add your own analysis and visualization
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Import errors**: Make sure you're running the notebook from the project root directory
+2. **CUDA out of memory**: Reduce the batch size in the notebook
+3. **Dataset not found**: Update the `data_root` path to point to your dataset location
+
+### Getting Help
+
+- Check the main README for installation instructions
+- Review the `S_TickNet_Dogs.py` script for advanced usage examples
+- Ensure all dependencies are properly installed
+
+## Contributing
+
+When adding new notebooks:
+
+1. Use clear, descriptive names
+2. Include markdown cells explaining each section
+3. Add comments to code cells
+4. Test the notebook with the current codebase
+5. Update this README with information about new notebooks 
