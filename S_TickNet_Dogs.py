@@ -153,11 +153,22 @@ def get_args():
   return parser.parse_args()
 
 
-def get_data_loader(args, train):
+def get_data_loader(dataset_name, data_root, batch_size, workers, download=False, train=True):
   """
-  Return the data loader for the given arguments.
+  Return the data loader for the given dataset configuration.
+
+  Args:
+    dataset_name (str): Name of the dataset ('cifar10', 'cifar100', 'dogs')
+    data_root (str): Root directory path containing the dataset
+    batch_size (int): Batch size for the DataLoader
+    workers (int): Number of data loading worker processes
+    download (bool): Whether to download the dataset if not present
+    train (bool): Whether to load training or validation data
+
+  Returns:
+    torch.utils.data.DataLoader: DataLoader for the specified dataset
   """
-  if args.dataset in ('cifar10', 'cifar100'):
+  if dataset_name in ('cifar10', 'cifar100'):
     # select transforms based on train/val
     if train:
       transform = torchvision.transforms.Compose(
@@ -175,12 +186,12 @@ def get_data_loader(args, train):
       )
 
     # cifar10 vs. cifar100
-    if args.dataset == 'cifar10':
+    if dataset_name == 'cifar10':
       dataset_class = torchvision.datasets.CIFAR10
     else:
       dataset_class = torchvision.datasets.CIFAR100
 
-  elif args.dataset in ('dogs',):
+  elif dataset_name in ('dogs',):
     # select transforms based on train/val
     if train:
       transform = torchvision.transforms.Compose(
@@ -206,24 +217,24 @@ def get_data_loader(args, train):
 
   else:
     raise NotImplementedError(
-        'Can\'t determine data loader for dataset \'{}\''.format(args.dataset)
+        'Can\'t determine data loader for dataset \'{}\''.format(dataset_name)
     )
 
   # trigger download only once
-  if args.download:
+  if download:
     dataset_class(
-        root=args.data_root, train=train, download=True, transform=transform
+        root=data_root, train=train, download=True, transform=transform
     )
 
   # instantiate dataset class and create data loader from it
   dataset = dataset_class(
-      root=args.data_root, train=train, download=False, transform=transform
+      root=data_root, train=train, download=False, transform=transform
   )
   return torch.utils.data.DataLoader(
       dataset,
-      batch_size=args.batch_size,
+      batch_size=batch_size,
       shuffle=True if train else False,
-      num_workers=args.workers,
+      num_workers=workers,
   )
 
 
@@ -237,9 +248,22 @@ def calculate_accuracy(output, target):
     return torch.sum(prediction == target).item() / batch_size
 
 
-def run_epoch(train, data_loader, model, criterion, optimizer, n_epoch, args, device):
+def run_epoch(train, data_loader, model, criterion, optimizer, n_epoch, total_epochs, device):
   """
   Run one epoch. If `train` is `True` perform training, otherwise validate.
+
+  Args:
+    train (bool): Whether to train or validate
+    data_loader (torch.utils.data.DataLoader): Data loader for the epoch
+    model (torch.nn.Module): The model to train/validate
+    criterion (torch.nn.Module): Loss function
+    optimizer (torch.optim.Optimizer): Optimizer (can be None for validation)
+    n_epoch (int): Current epoch number (0-indexed)
+    total_epochs (int): Total number of epochs for progress display
+    device (torch.device): Device to run the model on
+
+  Returns:
+    tuple: (average_loss, average_accuracy)
   """
   if train:
     model.train()
@@ -275,7 +299,7 @@ def run_epoch(train, data_loader, model, criterion, optimizer, n_epoch, args, de
           '[{}]  epoch {}/{},  batch {}/{},  loss_{}={:.5f},  acc_{}={:.2f}%'.format(
               'train' if train else ' val ',
               n_epoch + 1,
-              args.epochs,
+              total_epochs,
               n_batch + 1,
               batch_count,
               "train" if train else "val",
@@ -338,8 +362,22 @@ def main():
     )
 
     # get train and val data loaders
-    train_loader = get_data_loader(args=args, train=True)
-    val_loader = get_data_loader(args=args, train=False)
+    train_loader = get_data_loader(
+        dataset_name=args.dataset,
+        data_root=args.data_root,
+        batch_size=args.batch_size,
+        workers=args.workers,
+        download=args.download,
+        train=True
+    )
+    val_loader = get_data_loader(
+        dataset_name=args.dataset,
+        data_root=args.data_root,
+        batch_size=args.batch_size,
+        workers=args.workers,
+        download=args.download,
+        train=False
+    )
 
     if args.evaluate:
       pathcheckpoint = f'{args.base_dir}/checkpoints/StanfordDogs_S_TickNet/{strmode}/model_best.pth'
@@ -359,7 +397,7 @@ def main():
           criterion=criterion,
           optimizer=None,
           n_epoch=0,
-          args=args,
+          total_epochs=args.epochs,
           device=device,
       )
       print(
@@ -386,7 +424,7 @@ def main():
           criterion=criterion,
           optimizer=optimizer,
           n_epoch=n_epoch,
-          args=args,
+          total_epochs=args.epochs,
           device=device,
       )
 
@@ -398,7 +436,7 @@ def main():
           criterion=criterion,
           optimizer=None,
           n_epoch=n_epoch,
-          args=args,
+          total_epochs=args.epochs,
           device=device,
       )
       if (val_accuracy_max is None) or (val_accuracy > val_accuracy_max):
