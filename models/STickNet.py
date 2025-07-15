@@ -6,9 +6,9 @@ from .SE_Attention import *
 from .common import Classifier, conv1x1_block, conv3x3_block, conv3x3_dw_blockAll
 
 SPATIAL_TICKNET_CHANNEL_OPTIONS = {
-    'basic': [[256], [128], [64], [128, 256], [512]],
-    'small': [[256], [128, 64], [128, 256, 512, 256], [128, 64, 128, 256], [512]],
-    'large': [[256], [128, 64], [128, 256, 512, 256, 128], [64, 128, 256, 512, 256, 128, 64, 128, 256], [512]],
+  'basic': [[256], [128, 64], [128], [256], [512]],
+  'small': [[256], [128, 64, 128], [256, 512, 256,128], [64, 128, 256], [512]],
+  'large': [[256,128], [64,128,256],[512,256, 128, 64, 128, 256, 512], [ 256, 128, 64, 128, 256], [512]],
 }
 
 
@@ -56,7 +56,6 @@ class SpatialTickNet(nn.Module):
   """
   Class for constructing SpatialTickNet, enhancing TickNet for spatial feature learning.
   """
-
   def __init__(self,
                num_classes,
                init_conv_channels,
@@ -88,19 +87,18 @@ class SpatialTickNet(nn.Module):
     in_channels = self.add_stages(in_channels, channels, strides)
     self.final_conv_channels = 1024
 
-    self.backbone.add_module("final_conv", conv1x1_block(
-        in_channels=in_channels, out_channels=self.final_conv_channels, activation="relu"))
-    self.backbone.add_module(
-        "global_pool", torch.nn.AdaptiveAvgPool2d(output_size=1))
+    self.backbone.add_module("final_conv", conv1x1_block(in_channels=in_channels, out_channels=self.final_conv_channels, activation="relu"))
+    self.backbone.add_module("dropout1",torch.nn.Dropout2d(0.2))#with dropout
+    self.backbone.add_module("global_pool", torch.nn.AdaptiveAvgPool2d(output_size=1))
+    self.backbone.add_module("dropout2",torch.nn.Dropout2d(0.2))#with dropout
     in_channels = self.final_conv_channels
     # classifier
-    self.classifier = Classifier(
-        in_channels=in_channels, num_classes=num_classes)
+    self.classifier = Classifier(in_channels=in_channels, num_classes=num_classes)
 
     self.init_params()
 
   def init_params(self):
-    for name, module in self.backbone.named_modules():
+    for _, module in self.backbone.named_modules():
       if isinstance(module, nn.Conv2d):
         nn.init.kaiming_uniform_(module.weight)
         if module.bias is not None:
@@ -129,14 +127,9 @@ class SpatialTickNet(nn.Module):
       self.backbone.add_module("stage{}".format(stage_id + 1), stage)
     return in_channels
 
-
 def build_SpatialTickNet(num_classes, typesize='basic', cifar=False):
   init_conv_channels = 32
   channels = SPATIAL_TICKNET_CHANNEL_OPTIONS.get(typesize)
-
-  print(f'THE ACTUAL CHANNEL: {typesize}')
-  print(f'THE config: {channels}')
-
   if cifar:
     in_size = (32, 32)
     init_conv_stride = 1
@@ -144,10 +137,7 @@ def build_SpatialTickNet(num_classes, typesize='basic', cifar=False):
   else:
     in_size = (224, 224)
     init_conv_stride = 2
-    if typesize == 'basic':
-      strides = [2, 1, 2, 2, 2]
-    else:
-      strides = [1, 2, 2, 2, 2]
+    strides = [2, 1, 2, 2, 2] # for all
 
   return SpatialTickNet(
       num_classes=num_classes,
