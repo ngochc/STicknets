@@ -1,3 +1,4 @@
+
 import torch
 import torch.nn as nn
 
@@ -7,6 +8,10 @@ from .common import Classifier, conv1x1_block, conv3x3_block, conv3x3_dw_blockAl
 class FR_PDP_block(torch.nn.Module):
   """
   FR_PDP_block for TickNet.
+  Args:
+    in_channels (int): Number of input channels.
+    out_channels (int): Number of output channels.
+    stride (int): Stride for depthwise convolution.
   """
 
   def __init__(self,
@@ -42,16 +47,25 @@ class FR_PDP_block(torch.nn.Module):
 class SpatialTickNet(nn.Module):
   """
   Class for constructing SpatialTickNet, enhancing TickNet for spatial feature learning.
+  Args:
+    num_classes (int): Number of output classes.
+    init_conv_channels (int): Initial convolution channels.
+    init_conv_stride (int): Initial convolution stride.
+    channels (list): List of channel configurations for each stage.
+    strides (list): List of stride values for each stage.
+    in_channels (int): Number of input channels.
+    in_size (tuple): Input image size.
+    use_data_batchnorm (bool): Whether to use batch normalization on input data.
   """
   def __init__(self,
-    num_classes,
-    init_conv_channels,
-    init_conv_stride,
-    channels,
-    strides,
-    in_channels=3,
-    in_size=(224, 224),
-    use_data_batchnorm=True
+    num_classes: int,
+    init_conv_channels: int,
+    init_conv_stride: int,
+    channels: list,
+    strides: list,
+    in_channels: int = 3,
+    in_size: tuple = (224, 224),
+    use_data_batchnorm: bool = True
   ):
     
     super().__init__()
@@ -67,26 +81,22 @@ class SpatialTickNet(nn.Module):
     # init conv
     self.backbone.add_module("init_conv", conv3x3_block(in_channels=in_channels, out_channels=init_conv_channels,stride=init_conv_stride))
 
+    # Validate input
+    if len(channels) != len(strides):
+      raise ValueError("channels and strides must have the same length")
     # stages
     in_channels = init_conv_channels
-    for stage_id, stage_channels in enumerate(channels):
-      stage = torch.nn.Sequential()
-      for unit_id, unit_channels in enumerate(stage_channels):
-        stride = strides[stage_id] if unit_id == 0 else 1
-        stage.add_module("unit{}".format(unit_id + 1),
-          FR_PDP_block(in_channels=in_channels, out_channels=unit_channels, stride=stride))
-        in_channels = unit_channels
-      self.backbone.add_module("stage{}".format(stage_id + 1), stage)
+    in_channels = self.build_stages(in_channels, channels, strides)
+
     self.final_conv_channels = 1024
     self.backbone.add_module("final_conv", conv1x1_block(in_channels=in_channels, out_channels=self.final_conv_channels, activation="relu"))
     self.backbone.add_module("dropout1", torch.nn.Dropout2d(0.2)) # with dropout
     self.backbone.add_module("global_pool", torch.nn.AdaptiveAvgPool2d(output_size=1))
     self.backbone.add_module("dropout2", torch.nn.Dropout2d(0.2)) # with dropout
+
     in_channels = self.final_conv_channels
     # classifier
-    self.classifier = Classifier(
-      in_channels=in_channels,
-      num_classes=num_classes)
+    self.classifier = Classifier(in_channels=in_channels, num_classes=num_classes)
 
     self.init_params()
 
@@ -105,17 +115,51 @@ class SpatialTickNet(nn.Module):
     x = self.classifier(x)
     return x
 
+  def build_stages(self, in_channels: int, channels: list, strides: list) -> int:
+    """
+    Build the stages of the backbone network.
+    Args:
+      in_channels (int): Initial input channels.
+      channels (list): List of channel configurations for each stage.
+      strides (list): List of stride values for each stage.
+    Returns:
+      int: Number of output channels after all stages.
+    """
+    for stage_id, stage_channels in enumerate(channels):
+      stage = torch.nn.Sequential()
+      for unit_id, unit_channels in enumerate(stage_channels):
+        stride = strides[stage_id] if unit_id == 0 else 1
+        unit = FR_PDP_block(
+          in_channels=in_channels,
+          out_channels=unit_channels,
+          stride=stride)
+        stage.add_module("unit{}".format(unit_id + 1), unit)
+        in_channels = unit_channels
+      self.backbone.add_module("stage{}".format(stage_id + 1), stage)
+    return in_channels
+
 ###
 #%% model definitions
 ###
-def build_STickNet(num_classes, typesize='small', cifar=False):
+def build_sticknet(num_classes: int, typesize: str = 'small', cifar: bool = False) -> SpatialTickNet:
+  """
+  Build a SpatialTickNet model.
+  Args:
+    num_classes (int): Number of output classes.
+    typesize (str): Model size type ('basic', 'small', 'large').
+    cifar (bool): Whether to use CIFAR input size.
+  Returns:
+    SpatialTickNet: The constructed model.
+  """
   init_conv_channels = 32
   if typesize == 'basic':
     channels = [[256], [128, 64], [128], [256], [512]]
-  if typesize == 'small':
+  elif typesize == 'small':
     channels = [[256], [128, 64, 128], [256, 512, 256, 128], [64, 128, 256], [512]]
-  if typesize == 'large':
+  elif typesize == 'large':
     channels = [[256, 128], [64, 128, 256], [512, 256, 128, 64, 128, 256, 512], [256, 128, 64, 128, 256], [512]]
+  else:
+    raise ValueError("typesize must be 'basic', 'small', or 'large'")
 
   if cifar:
     in_size = (32, 32)
