@@ -14,6 +14,11 @@ import writeLogAcc as wA
 
 
 def get_args():
+  parser.add_argument(
+      '--verbal',
+      action='store_true',
+      help='Print per-epoch training/validation output if set.'
+  )
   """
   Parse the command line arguments for STickNet training.
 
@@ -412,10 +417,11 @@ def main():
     val_accuracy_argmax = None
     for n_epoch in range(args.epochs):
       current_learning_rate = optimizer.param_groups[0]['lr']
-      print(
-          f'Starting epoch {n_epoch + 1}/{args.epochs}, learning_rate={current_learning_rate}'
-      )
-
+      if args.verbal:
+          print(
+              f'Starting epoch {n_epoch + 1}/{args.epochs}, learning_rate={current_learning_rate}'
+          )
+  
       # train
       (train_loss, train_accuracy) = run_epoch(
           train=True,
@@ -461,7 +467,8 @@ def main():
           f'(best: {100.0 * val_accuracy_max:.2f}% @ epoch {(val_accuracy_argmax or 0) + 1})'
           '=================================================================================='
       )
-      print(line)
+      if args.verbal:
+        print(line)
       wA.writeLogAcc(filenameLOG, line)
       wA.log_results_to_csv(
           result_file_path,
