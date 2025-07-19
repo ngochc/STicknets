@@ -141,7 +141,7 @@ class SpatialTickNet(nn.Module):
 ###
 #%% model definitions
 ###
-def build_sticknet(num_classes: int, typesize: str = 'small', cifar: bool = False) -> SpatialTickNet:
+def build_SpatialTickNet(num_classes: int, typesize: str = 'small', cifar: bool = False) -> SpatialTickNet:
   """
   Build a SpatialTickNet model.
   Args:
