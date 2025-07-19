@@ -253,7 +253,7 @@ def calculate_accuracy(output, target):
     return torch.sum(prediction == target).item() / batch_size
 
 
-def run_epoch(train, data_loader, model, criterion, optimizer, n_epoch, total_epochs, device):
+def run_epoch(train, data_loader, model, criterion, optimizer, n_epoch, total_epochs, device, verbal=False):
   """
   Run one epoch. If `train` is `True` perform training, otherwise validate.
 
@@ -299,7 +299,7 @@ def run_epoch(train, data_loader, model, criterion, optimizer, n_epoch, total_ep
       loss.backward()
       optimizer.step()
 
-    if (n_batch % 10) == 0:
+    if (n_batch % 10) == 0 and verbal:
       print(
           '[{}]  epoch {}/{},  batch {}/{},  loss_{}={:.5f},  acc_{}={:.2f}%'.format(
               'train' if train else ' val ',
@@ -404,6 +404,7 @@ def main():
           n_epoch=0,
           total_epochs=args.epochs,
           device=device,
+          verbal=args.verbal,
       )
       print(
           f'[ validating: ], loss_val={val_loss:.5f}, acc_val={100.0 * val_accuracy:.2f}%'
@@ -432,6 +433,7 @@ def main():
           n_epoch=n_epoch,
           total_epochs=args.epochs,
           device=device,
+          verbal=args.verbal,
       )
 
       # validate
@@ -444,6 +446,7 @@ def main():
           n_epoch=n_epoch,
           total_epochs=args.epochs,
           device=device,
+          verbal=args.verbal,
       )
       if (val_accuracy_max is None) or (val_accuracy > val_accuracy_max):
         val_accuracy_max = val_accuracy
