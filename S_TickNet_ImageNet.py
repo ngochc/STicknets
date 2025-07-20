@@ -67,7 +67,7 @@ def main():
 
   torch.autograd.set_detect_anomaly(True)
   # create model
-  model = build_SpatialTickNet(1000, typesize=args.arch, cifar=False)
+  model = build_STickNet(1000, typesize=args.arch, cifar=False)
 
   device = get_device(args.gpu)
   model = model.to(device)

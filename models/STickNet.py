@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 
 from .SE_Attention import *
-from .common import Classifier, conv1x1_block, conv3x3_block, conv3x3_dw_blockAll
+from .common import Classifier, conv1x1_block, conv3x3_block, conv3x3_dw_blockAll, LWO
 
 class FR_PDP_block(torch.nn.Module):
   """
@@ -65,12 +65,14 @@ class SpatialTickNet(nn.Module):
     strides: list,
     in_channels: int = 3,
     in_size: tuple = (224, 224),
-    use_data_batchnorm: bool = True
+    use_data_batchnorm: bool = True,
+    use_lightweight_optimization: bool = False
   ):
     
     super().__init__()
     self.use_data_batchnorm = use_data_batchnorm
     self.in_size = in_size
+    self.use_lightweight_optimization = use_lightweight_optimization
 
     self.backbone = torch.nn.Sequential()
 
@@ -86,7 +88,7 @@ class SpatialTickNet(nn.Module):
       raise ValueError("channels and strides must have the same length")
     # stages
     in_channels = init_conv_channels
-    in_channels = self.build_stages(in_channels, channels, strides)
+    in_channels = self.build_stages(in_channels, channels, strides, self.use_lightweight_optimization)
 
     self.final_conv_channels = 1024
     self.backbone.add_module("final_conv", conv1x1_block(in_channels=in_channels, out_channels=self.final_conv_channels, activation="relu"))
@@ -115,13 +117,14 @@ class SpatialTickNet(nn.Module):
     x = self.classifier(x)
     return x
 
-  def build_stages(self, in_channels: int, channels: list, strides: list) -> int:
+  def build_stages(self, in_channels: int, channels: list, strides: list, use_lightweight_optimization: bool = False) -> int:
     """
     Build the stages of the backbone network.
     Args:
       in_channels (int): Initial input channels.
       channels (list): List of channel configurations for each stage.
       strides (list): List of stride values for each stage.
+      use_lightweight_optimization (bool): Whether to use LWO blocks when conditions are met.
     Returns:
       int: Number of output channels after all stages.
     """
@@ -129,11 +132,15 @@ class SpatialTickNet(nn.Module):
       stage = torch.nn.Sequential()
       for unit_id, unit_channels in enumerate(stage_channels):
         stride = strides[stage_id] if unit_id == 0 else 1
-        unit = FR_PDP_block(
-          in_channels=in_channels,
-          out_channels=unit_channels,
-          stride=stride)
-        stage.add_module("unit{}".format(unit_id + 1), unit)
+        if use_lightweight_optimization and in_channels == 256 and unit_channels == 128:
+          unit = LWO(in_channels=in_channels, out_channels=unit_channels, stride=stride)
+          stage.add_module("LWO{}".format(unit_id + 1), unit)
+        else:
+          unit = FR_PDP_block(
+            in_channels=in_channels,
+            out_channels=unit_channels,
+            stride=stride)
+          stage.add_module("unit{}".format(unit_id + 1), unit)
         in_channels = unit_channels
       self.backbone.add_module("stage{}".format(stage_id + 1), stage)
     return in_channels
@@ -141,13 +148,14 @@ class SpatialTickNet(nn.Module):
 ###
 #%% model definitions
 ###
-def build_SpatialTickNet(num_classes: int, typesize: str = 'small', cifar: bool = False) -> SpatialTickNet:
+def build_STickNet(num_classes: int, typesize: str = 'small', cifar: bool = False, use_lightweight_optimization: bool = False) -> SpatialTickNet:
   """
   Build a SpatialTickNet model.
   Args:
     num_classes (int): Number of output classes.
     typesize (str): Model size type ('basic', 'small', 'large').
     cifar (bool): Whether to use CIFAR input size.
+    use_lightweight_optimization (bool): Whether to enable LWO blocks for 256->128 channel transitions.
   Returns:
     SpatialTickNet: The constructed model.
   """
@@ -176,4 +184,5 @@ def build_SpatialTickNet(num_classes: int, typesize: str = 'small', cifar: bool 
     init_conv_stride=init_conv_stride,
     channels=channels,
     strides=strides,
-    in_size=in_size)
+    in_size=in_size,
+    use_lightweight_optimization=use_lightweight_optimization)

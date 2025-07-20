@@ -343,7 +343,7 @@ def main():
       os.makedirs(pathout)
 
     # get model
-    model = build_SpatialTickNet(120, typesize=typesize, cifar=False)
+    model = build_STickNet(120, typesize=typesize, cifar=False)
     model = model.to(device)
 
     print(model)
