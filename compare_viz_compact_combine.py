@@ -252,7 +252,7 @@ def save_individual_images(
     plt.imsave(save_path, combined_map, cmap='viridis')
     return save_path
 
-def compare_models_combination_methods(model_features, output_dir):
+def compare_models_combination_methods(model_features, output_dir, target_image):
     print("Creating separate images for each combination method...")
     if not model_features:
         print("No model features found!")
@@ -286,7 +286,7 @@ def compare_models_combination_methods(model_features, output_dir):
                         im = ax.imshow(combined_norm, cmap='viridis', aspect='auto')
                         save_individual_images(
                             combined_norm,
-                            TARGET_IMAGE,
+                            target_image,
                             model_name,
                             pdp_stage,
                             method_name,
@@ -334,7 +334,7 @@ def main():
     fr_pdp_hook.register_fr_pdp_hooks(models)
     model_features = fr_pdp_hook.extract_features(models, target_images)
 
-    compare_models_combination_methods(model_features, OUTPUT_DIR)
+    compare_models_combination_methods(model_features, OUTPUT_DIR, TARGET_IMAGE)
     fr_pdp_hook.remove_all_hooks()
     print(f"All outputs saved to: {os.path.abspath(OUTPUT_DIR)}")
 
