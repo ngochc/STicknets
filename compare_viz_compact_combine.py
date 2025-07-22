@@ -79,33 +79,6 @@ class FRPDPMultiModelHook:
         self.hooks.clear()
         self.model_features.clear()
 
-def load_target_image(image_path, image_size=(224, 224), batch_size=16):
-    transform = transforms.Compose([
-        transforms.Resize(image_size),
-        transforms.ToTensor(),
-        transforms.Normalize(
-            mean=[0.485, 0.456, 0.406],
-            std=[0.229, 0.224, 0.225]
-        )
-    ])
-    try:
-        if not os.path.exists(image_path):
-            raise FileNotFoundError(f"Target image not found: {image_path}")
-        print(f"Loading target image: {image_path}")
-        original_image = Image.open(image_path).convert('RGB')
-        images = []
-        for _ in range(batch_size):
-            image_tensor = transform(original_image)
-            images.append(image_tensor)
-        batch_images = torch.stack(images).to(DEVICE)
-        print(f"Image loaded successfully! Shape: {batch_images.shape}")
-        return batch_images
-    except Exception as e:
-        print(f"Error loading image: {e}")
-        print("Creating synthetic fallback data...")
-        synthetic_data = torch.randn(batch_size, 3, *image_size).to(DEVICE)
-        return synthetic_data
-
 def load_models():
     models = {}
     print("Loading model variants...")
@@ -300,19 +273,6 @@ def compare_models_combination_methods(model_features, output_dir, target_image)
                                    fontsize=10, fontweight='bold')
                         cbar = plt.colorbar(im, ax=ax, shrink=0.7)
                         cbar.ax.tick_params(labelsize=8)
-                    else:
-                        ax.text(0.5, 0.5, f'{method_name}\nNot Available',
-                               ha='center', va='center', transform=ax.transAxes,
-                               fontsize=12, fontweight='bold')
-                        ax.set_title(f'{model_name.upper()} - {pdp_stage}',
-                                   fontsize=10, fontweight='bold')
-                else:
-                    print(f"{pdp_stage} not found in {model_name}")
-                    ax.text(0.5, 0.5, f'{pdp_stage}\nNot Found',
-                           ha='center', va='center', transform=ax.transAxes,
-                           fontsize=12, fontweight='bold', color='red')
-                    ax.set_title(f'{model_name.upper()} - {pdp_stage}',
-                               fontsize=10, fontweight='bold')
                 ax.axis('off')
         plt.tight_layout()
         method_filename = method_name.lower().replace('_', '-')
@@ -325,14 +285,25 @@ def compare_models_combination_methods(model_features, output_dir, target_image)
 def main():
     OUTPUT_DIR = "featuremap_compare_combined"
     TARGET_IMAGE = "datasets/StanfordDogs/Images/n02088364-beagle/n02088364_876.jpg"
-
     print(f"Device: {DEVICE}")
+
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     models = load_models()
-    target_images = load_target_image(TARGET_IMAGE)
+    transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize(
+            mean=[0.485, 0.456, 0.406],
+            std=[0.229, 0.224, 0.225]
+        )
+    ])
+    original_image = Image.open(TARGET_IMAGE).convert('RGB')
+    image_tensor = transform(original_image).unsqueeze(0).to(DEVICE)
+
     fr_pdp_hook = FRPDPMultiModelHook()
     fr_pdp_hook.register_fr_pdp_hooks(models)
-    model_features = fr_pdp_hook.extract_features(models, target_images)
+
+    model_features = fr_pdp_hook.extract_features(models, image_tensor)
 
     compare_models_combination_methods(model_features, OUTPUT_DIR, TARGET_IMAGE)
     fr_pdp_hook.remove_all_hooks()
