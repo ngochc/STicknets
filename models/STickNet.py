@@ -2,8 +2,8 @@
 import torch
 import torch.nn as nn
 
-from .se_attention import SE
-from .common import Classifier, conv1x1_block, conv3x3_block, conv3x3_dw_block_all
+from models.SE_Attention import SE
+from models.common import Classifier, conv1x1_block, conv3x3_block, conv3x3_dw_block_all
 
 
 class LWO(torch.nn.Module):

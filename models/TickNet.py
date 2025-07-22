@@ -8,7 +8,7 @@ import torch.nn.init
 
 
 from .common import conv1x1_block, Classifier, conv3x3_dw_block_all, conv3x3_block
-from .se_attention import *
+from .SE_Attention import *
 
 
 class FR_PDP_block(torch.nn.Module):

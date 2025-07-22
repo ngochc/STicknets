@@ -14,11 +14,7 @@ import writeLogAcc as wA
 
 
 def get_args():
-  parser.add_argument(
-      '--verbal',
-      action='store_true',
-      help='Print per-epoch training/validation output if set.'
-  )
+
   """
   Parse the command line arguments for STickNet training.
 
@@ -29,6 +25,11 @@ def get_args():
       description='STickNet training script for image classification on CIFAR-10, CIFAR-100, and Stanford Dogs datasets. '
                   'Supports multiple architecture configurations and comprehensive training options.',
       formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+  )
+  parser.add_argument(
+      '--verbal',
+      action='store_true',
+      help='Print per-epoch training/validation output if set.'
   )
 
   # Dataset configuration
