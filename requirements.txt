@@ -10,17 +10,30 @@ scipy>=1.9.0
 pandas>=1.4.0
 numpy>=1.21.0
 
+# Machine learning and data analysis
+scikit-learn>=1.1.0
+
 # Standard library modules (included with Python)
 # argparse, sys, os, time, glob, csv, datetime, tarfile, re, types
 # These don't need to be installed separately
 
-# Optional: For better performance on Apple Silicon Macs
-# torch>=1.12.0 with MPS support is included above
+# Visualization and plotting libraries
+matplotlib>=3.5.0
+seaborn>=0.11.0
+
+# Image processing
+opencv-python>=4.6.0
+Pillow>=9.0.0
+
+# Progress bars and CLI utilities
+tqdm>=4.64.0
+
+# Jupyter notebook support
+jupyter>=1.0.0
+ipykernel>=6.0.0
 
 # Optional: For development and debugging
-# matplotlib>=3.5.0  # For plotting results
-# tensorboard>=2.9.0  # For training visualization
-# jupyter>=1.0.0  # For notebook support
+tensorboard>=2.9.0  # For training visualization
 
 # Development and formatting tools
 black>=22.0.0
