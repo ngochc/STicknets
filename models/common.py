@@ -81,11 +81,9 @@ class SEUnit(torch.nn.Module):
     squeeze_channels = channels // squeeze_factor
 
     self.pool = torch.nn.AdaptiveAvgPool2d(output_size=1)
-    self.conv1 = conv1x1(in_channels=channels,
-                         out_channels=squeeze_channels, bias=True)
+    self.conv1 = conv1x1(in_channels=channels, out_channels=squeeze_channels, bias=True)
     self.activation1 = get_activation(squeeze_activation)
-    self.conv2 = conv1x1(in_channels=squeeze_channels,
-                         out_channels=channels, bias=True)
+    self.conv2 = conv1x1(in_channels=squeeze_channels, out_channels=channels, bias=True)
     self.activation2 = get_activation(excite_activation)
 
   def forward(self, x):
@@ -257,7 +255,7 @@ def conv7x7_block(in_channels,
       activation=activation)
 
 
-def conv3x3_dw_blockAll(channels,
+def conv3x3_dw_block_all(channels,
                         stride=1,
                         use_bn=True,
                         activation="relu",
@@ -276,7 +274,7 @@ def conv3x3_dw_blockAll(channels,
       activation=activation)
 
 
-def conv5x5_dw_blockAll(channels,
+def conv5x5_dw_block_all(channels,
                         stride=1,
                         use_bn=True,
                         activation="relu",

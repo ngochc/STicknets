@@ -7,8 +7,8 @@ import torch.nn
 import torch.nn.init
 
 
-from .common import conv1x1_block, Classifier, conv3x3_dw_blockAll, conv3x3_block
-from .SE_Attention import *
+from .common import conv1x1_block, Classifier, conv3x3_dw_block_all, conv3x3_block
+from .se_attention import *
 
 
 class FR_PDP_block(torch.nn.Module):
@@ -25,7 +25,7 @@ class FR_PDP_block(torch.nn.Module):
                                  out_channels=in_channels,
                                  use_bn=False,
                                  activation=None)
-        self.Dw = conv3x3_dw_blockAll(channels=in_channels, stride=stride)
+        self.Dw = conv3x3_dw_block_all(channels=in_channels, stride=stride)
         self.Pw2 = conv1x1_block(in_channels=in_channels,
                                  out_channels=out_channels,
                                  groups=1)
