@@ -184,3 +184,21 @@ See `notebooks/README.md` for detailed documentation about the available noteboo
 - `S_TickNet_Dogs.py` - Script for TickNet with dogs dataset
 - `TickNet_Dogs.py` - Alternative TickNet implementation
 - `writeLogAcc.py` - Logging and accuracy utilities
+
+
+## Citation
+
+If you use this codebase, STickNet in your work, please cite:
+
+@inproceedings{Hoang2026STickNet,
+  title     = {Spread-Learned Spatial Features to Improve Tick-Shape Networks},
+  author    = {Hoang, Canh Ngoc and Nguyen, Thanh Phuong and Pham, Hoang Anh and Le, Thinh Vinh and Phan, Thi-The and Nguyen, Thanh Tuan},
+  booktitle = {Multi-disciplinary Trends in Artificial Intelligence (MIWAI 2025)},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {16353},
+  publisher = {Springer},
+  address   = {Singapore},
+  pages     = {116--129},
+  year      = {2026},
+  doi       = {10.1007/978-981-95-4957-3_10}
+}
