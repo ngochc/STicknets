@@ -189,7 +189,7 @@ See `notebooks/README.md` for detailed documentation about the available noteboo
 ## Citation
 
 If you use this codebase, STickNet in your work, please cite:
-
+```
 @inproceedings{Hoang2026STickNet,
   title     = {Spread-Learned Spatial Features to Improve Tick-Shape Networks},
   author    = {Hoang, Canh Ngoc and Nguyen, Thanh Phuong and Pham, Hoang Anh and Le, Thinh Vinh and Phan, Thi-The and Nguyen, Thanh Tuan},
@@ -202,3 +202,4 @@ If you use this codebase, STickNet in your work, please cite:
   year      = {2026},
   doi       = {10.1007/978-981-95-4957-3_10}
 }
+```
